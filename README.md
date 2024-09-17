@@ -23,7 +23,7 @@ ffGEMM is a neural network training and inference library for **fast CPU matmuls
 
 We provide
 
-✔ Arbitrary precision fixed-point arithmetic - Perfom fast CPU matmuls with zero floating point ops.
+✔ Arbitrary precision fixed-point arithmetic - Perform fast CPU matmuls with zero floating point ops.
 
 ✔ Safetensor support - Load formats stored as Safetensors.
 
@@ -36,9 +36,11 @@ Everone has access to a CPU and finite fields permit us perform a special kind o
 We wrote a detailed article [here](https://fileforma.substack.com/p/update-ffgemm-finite-field-general?r=2at73k)
 
 
-## Development Status!
+## Development Log
 Sep 10th - Safetensors support added
+
 Sep 16th - Whitepaper Substack launch
+
 Sep 17th - Fixed point library added 
 
 
