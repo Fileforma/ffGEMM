@@ -27,13 +27,13 @@ We provide
 
 ✔ Safetensor support - Load formats stored as Safetensors.
 
-✔ CPU Finite field arithmetic library - Perform efficient finite field arithmetic on CPU. 
+✔ CPU finite field arithmetic library - Perform efficient finite field arithmetic on CPU. 
 
 
 ### Motivation
-Everone has access to a CPU and finite fields permit us perform a special kind of parallelization. Might as well optimize for fast matmuls on edge devices.
+Everyone has access to a CPU and finite fields permit us perform a special kind of parallelization. We optimize for fast matmuls on the edge.
 
-We wrote a detailed article [here](https://fileforma.substack.com/p/update-ffgemm-finite-field-general?r=2at73k)
+We wrote a detailed article [here.](https://fileforma.substack.com/p/update-ffgemm-finite-field-general?r=2at73k)
 
 
 ## Development Log
