@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+
+// FP32
+#define FIXEDPT_BITS 32
+#define FIXEDPT_WBITS 9
+#include "FixedPoint.h"
 float relu_alpha = 0.01;
 enum OperationEnum{ADD,SUBTRACT,MULTIPLY,DIVIDE,POWER,OPERATION_LENGTH};
 typedef struct value_struct *Value;
@@ -10,18 +15,20 @@ struct value_struct
 {
 	float number;
 	float gradient;
+	fixedpt numberInteger;
+	fixedpt gradientInteger;
 	Value children[2];
 	int numberOfChildren;
 	int operationIndex;
 	void (*backward)(struct value_struct*);
 };
 
-
-
 Value CreateNewValue(float value)
 {
 	Value newValue = malloc(sizeof(*newValue));
 	newValue->number = value;
+	newValue->numberInteger = fixedpt_rconst(value);
+	newValue->gradientInteger = 0;
 	newValue->gradient = 0.0f;
 	newValue->children[0] = NULL;
 	newValue->children[1] = NULL;
@@ -39,6 +46,15 @@ void PrintValue(Value value)
 	}
 }
 
+void PrintValueInteger(Value value)
+{
+	if(value != NULL)
+	{
+		printf("Value(value = %d, gradient = %d)\n", value->numberInteger, value->gradientInteger);
+	}
+}
+
+
 void DestroyValue(Value value)
 {
 	free(value);
@@ -49,6 +65,8 @@ void AddBack(Value v)
 {
 	v->children[0]->gradient += v->gradient;
 	v->children[1]->gradient += v->gradient;
+	v->children[0]->gradientInteger = fixedpt_rconst(v->children[0]->gradient);
+	v->children[1]->gradientInteger = fixedpt_rconst(v->children[1]->gradient);
 	//ClipGradient(v->children[0], -10.0, 10.0);
 	//ClipGradient(v->children[1], -10.0, 10.0);
 }
@@ -57,6 +75,9 @@ void SubtractBack(Value v)
 {
 	v->children[0]->gradient += v->gradient;
 	v->children[1]->gradient -= v->gradient;
+	
+	v->children[0]->gradientInteger = fixedpt_rconst(v->children[0]->gradient);
+	v->children[1]->gradientInteger = fixedpt_rconst(v->children[1]->gradient);
 	//ClipGradient(v->children[0], -10.0, 10.0);
 	//ClipGradient(v->children[1], -10.0, 10.0);
 }
@@ -65,6 +86,9 @@ void MultiplyBack(Value v)
 {
 	v->children[0]->gradient += v->children[1]->number * v->gradient;
 	v->children[1]->gradient += v->children[0]->number * v->gradient;
+	v->children[0]->gradientInteger = fixedpt_rconst(v->children[0]->gradient);
+	v->children[1]->gradientInteger = fixedpt_rconst(v->children[1]->gradient);
+	
 	//ClipGradient(v->children[0], -10.0, 10.0);
 	//ClipGradient(v->children[1], -10.0, 10.0);
 }
@@ -73,7 +97,9 @@ void DivideBack(Value v)
 {
 	v->children[0]->gradient += (1.0 / v->children[1]->number) * v->gradient;
 	v->children[1]->gradient += (-v->children[0]->number / (v->children[1]->number * v->children[1]->number)) * v->gradient;
-
+	v->children[0]->gradientInteger = fixedpt_rconst(v->children[0]->gradient);
+	v->children[1]->gradientInteger = fixedpt_rconst(v->children[1]->gradient);
+	
 	//ClipGradient(v->children[0], -10.0, 10.0);
 	//ClipGradient(v->children[1], -10.0, 10.0);
 }
@@ -89,6 +115,9 @@ void PowerBack(Value v)
 		// Ensure base is positive before computing log
 		v->children[1]->gradient += (log(v->children[0]->number) * pow(v->children[0]->number, v->children[1]->number)) * v->gradient;
 	}
+	v->children[0]->gradientInteger = fixedpt_rconst(v->children[0]->gradient);
+	v->children[1]->gradientInteger = fixedpt_rconst(v->children[1]->gradient);
+	
 	//ClipGradient(v->children[0], -10.0, 10.0);
 	//ClipGradient(v->children[1], -10.0, 10.0);
 }
@@ -103,6 +132,7 @@ void ReluBack(Value v)
 	{
 		v->children[0]->gradient += v->gradient * relu_alpha;
 	}
+	v->children[0]->gradientInteger = fixedpt_rconst(v->children[0]->gradient);	
 }
 
 Value AddValues(Value a, Value b)
@@ -184,30 +214,17 @@ Value ReluValue(Value a)
 
 
 
-void build_topo(Value v, Value* topo, int* topo_size, Value* visited, int* visited_size) {
-    for (int i = 0; i < *visited_size; ++i) {
-        if (visited[i] == v) return;
-    }
-
-    visited[*visited_size] = v;
-    (*visited_size)++;
-    // printf("%i\n", v->n_children);
-
-    for (int i = 0; i < v->numberOfChildren; ++i) {
-        // printf("child of %f\n", v->val);
-        for (int i = 0; i < v->numberOfChildren; ++i) {
-            // print_value(v->children[i]);
-        }
-        // printf("\n\n");
-        build_topo(v->children[i], topo, topo_size, visited, visited_size);
-    }
-
-    // printf("topo size = %i, node.val = %.2f\n", *topo_size, v->val);
-    
-
-    topo[*topo_size] = v;
-    (*topo_size)++;
-
+void build_topo(Value v, Value* topo, int* topo_size, Value* visited, int* visited_size)
+{
+	for(int i = 0; i < *visited_size; ++i){if (visited[i] == v) return;}
+	visited[*visited_size] = v;
+	(*visited_size)++;
+	for(int i = 0; i < v->numberOfChildren; ++i)
+	{
+		build_topo(v->children[i], topo, topo_size, visited, visited_size);
+	}
+	topo[*topo_size] = v;
+	(*topo_size)++;
 }
 
 void backward(Value root)
