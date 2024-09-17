@@ -2,7 +2,7 @@
 ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/murage_kibicho)
 <div align="center">
 <h1>✨ ffGEMM <h2>finite field general matrix multiply</h2> </h1>
-<p>Finite field training and inference for Neural Networks</p>
+<p>finite field training and inference for Neural Networks</p>
 <a href="https://github.com/Fileforma/ffGEMM" target="_blank" title="GitHub stars">
 <img src = "https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FFileforma%2FffGEMM&label=Visitors&countColor=%23263759"
  alt="Visitor Count" />
