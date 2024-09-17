@@ -42,16 +42,8 @@ void PrintValue(Value value)
 {
 	if(value != NULL)
 	{
-		printf("Value(value = %.3f, gradient = %.2f) ", value->number, value->gradient);
+		printf("(value = %.3f, gradient = %.2f) ", value->number, value->gradient);
 		printf("(%d, %d)\n", value->numberInteger, value->gradientInteger);
-	}
-}
-
-void PrintValueInteger(Value value)
-{
-	if(value != NULL)
-	{
-		printf("Value(value = %d, gradient = %d)\n", value->numberInteger, value->gradientInteger);
 	}
 }
 
